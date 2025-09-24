@@ -1,0 +1,58 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo:4.2.15
+    container_name: mongo-pwndoc
+    command: --wiredTigerCacheSizeGB 1 # 50% of (max RAM - 1GB) - minimum 0.25 (Modify it depending on defined RAM limits)
+    deploy:
+      resources:
+        limits:
+          memory: 3G # Maximum memory to allocate (Modify it depending on host ressources - leave at least 1GB free for host)
+        reservations:
+          memory: 1G # Minimum memory required
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./backend/mongo-data:/data/db
+    restart: always
+    environment:
+      - MONGO_DB:pwndoc
+    networks:
+      - backend
+
+  pwndoc-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pwndoc-backend
+    environment:
+      - DB_SERVER=mongo-pwndoc
+      - DB_NAME=pwndoc
+    volumes:
+      - ./backend/report-templates:/app/report-templates
+      - ./backend/src/config:/app/src/config
+      - ./backend/src/lib/custom:/app/src/lib/custom
+      - ./backend/backup:/app/backup
+    depends_on:
+      - mongodb
+    restart: always
+    links:
+      - mongodb
+    networks: 
+      - backend
+
+  pwndoc-frontend:
+    image: ghcr.io/pwndoc/pwndoc-frontend:latest
+    container_name: pwndoc-frontend
+    restart: always
+    ports:
+      - ${APP_PORT}:8443
+    networks:
+      - backend
+
+volumes:
+  mongo-data:
+
+networks:
+  backend:
+      driver: bridge
