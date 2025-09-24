@@ -175,16 +175,28 @@ Provide only the remediation content, no additional formatting or explanations.`
         }
 
         const prompts = {
-            en: `Translate the following cybersecurity content to English. Maintain technical accuracy and professional terminology:
+            en: `You are a cybersecurity expert translator. Translate ONLY the Chinese text in the following content to English while:
+1. Preserving ALL HTML tags exactly as they are
+2. Only translating Chinese characters to English
+3. Using professional cybersecurity terminology
+4. Keeping all English text unchanged
+5. Maintaining the exact structure and formatting
 
+Content to translate:
 ${content}
 
-Provide only the translation, no additional explanations.`,
-            zh: `将以下网络安全内容翻译成中文。保持技术准确性和专业术语：
+Provide only the translated content with preserved HTML tags, no additional explanations.`,
+            zh: `你是网络安全专家翻译员。将以下内容中的英文翻译成中文，同时：
+1. 完全保留所有HTML标签
+2. 只翻译英文字符为中文
+3. 使用专业的网络安全术语
+4. 保持所有中文文本不变
+5. 维持确切的结构和格式
 
+要翻译的内容：
 ${content}
 
-只提供翻译内容，不要额外的解释。`
+只提供保留HTML标签的翻译内容，不要额外的解释。`
         };
 
         const prompt = prompts[targetLanguage];

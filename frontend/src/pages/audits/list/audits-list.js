@@ -336,17 +336,54 @@ export default {
                 // Set loading state
                 this.$set(this.translationLoading, audit._id, true);
 
-                // Translate audit content
-                await AIService.translateAuditToEnglish(audit._id);
+                // Create a new audit based on the original one
+                const newAuditData = {
+                    name: audit.name + ' (English Translation)',
+                    language: 'en',
+                    auditType: audit.auditType
+                };
+
+                // Create the new audit
+                const createResponse = await AuditService.createAudit(newAuditData);
+                const newAuditId = createResponse.data.datas.audit._id;
+
+                // Get the original audit details with findings
+                const originalAuditResponse = await AuditService.getAudit(audit._id);
+                const originalAudit = originalAuditResponse.data.datas;
+
+                // Copy findings from original audit to new audit
+                if (originalAudit.findings && originalAudit.findings.length > 0) {
+                    for (const finding of originalAudit.findings) {
+                        const newFinding = {
+                            title: finding.title,
+                            vulnType: finding.vulnType,
+                            description: finding.description,
+                            observation: finding.observation,
+                            remediation: finding.remediation,
+                            poc: finding.poc,
+                            priority: finding.priority,
+                            cvssv3: finding.cvssv3,
+                            references: finding.references,
+                            category: finding.category
+                        };
+                        await AuditService.createFinding(newAuditId, newFinding);
+                    }
+                }
+
+                // Translate the new audit content
+                await AIService.translateAuditToEnglish(newAuditId);
 
                 Notify.create({
-                    message: this.$t('translationSuccess'),
+                    message: 'New audit created and translated successfully',
                     color: 'positive',
                     position: 'top-right'
                 });
 
-                // Refresh audits list to show updated content
+                // Refresh audits list to show the new audit
                 this.getAudits();
+
+                // Navigate to the new audit
+                this.$router.push('/audits/' + newAuditId);
 
             } catch (error) {
                 console.error('Translation error:', error);

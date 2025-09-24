@@ -49,12 +49,12 @@ module.exports = function (ctx) {
       port: 8081,
       proxy: {
         '/api': {
-          target: `https://localhost:4242`,
+          target: `http://localhost:4242`,
           changeOrigin: true,
           secure: false
         },
         '/socket.io': {
-          target: `https://localhost:4242`,
+          target: `http://localhost:4242`,
           changeOrigin: true,
           secure: false
         }

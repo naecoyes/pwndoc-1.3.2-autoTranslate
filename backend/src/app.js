@@ -90,6 +90,11 @@ const connectDB = async () => {
       require('./routes/backup')(app);
       require('./routes/ai')(app);
       
+      // Add catch-all route after all other routes are initialized
+      app.all(/(.*)/, function(req, res) {
+          res.status(404).json({"status": "error", "data": "Route undefined"});
+      });
+      
     } catch (error) {
       console.error('MongoDB connection failed:', error.message);
       console.log('Server will continue without database connection');
@@ -186,10 +191,6 @@ app.use(cookieParser())
 
 // Routes will be initialized after database connection
 
-app.all(/(.*)/, function(req, res) {
-    res.status(404).json({"status": "error", "data": "Route undefined"});
-})
-
 // Global error handler
 app.use((err, req, res, next) => {
   // Log error details for debugging
@@ -243,7 +244,8 @@ app.use((err, req, res, next) => {
 // Connect to MongoDB first
 connectDB();
 
-http.listen(4242)
-console.log('Server running on http://localhost:4242');
+http.listen(4242, () => {
+    console.log('Server running on http://localhost:4242');
+});
 
 module.exports = app;
