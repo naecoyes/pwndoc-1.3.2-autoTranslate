@@ -1,44 +1,136 @@
 # PwnDoc
 
-PwnDoc is a pentest reporting application making it simple and easy to write your findings and generate a customizable Docx report.  
-The main goal is to have more time to **Pwn** and less time to **Doc** by mutualizing data like vulnerabilities between users.
+<div align="center">
 
-# Documentation
-- [Installation](https://pwndoc.github.io/pwndoc/#/installation)
-- [Data](https://pwndoc.github.io/pwndoc/#/data)
-- [Vulnerabilities](https://pwndoc.github.io/pwndoc/#/vulnerabilities)
-- [Audits](https://pwndoc.github.io/pwndoc/#/audits)
-- [Templating](https://pwndoc.github.io/pwndoc/#/docxtemplate)
+![PwnDoc Logo](frontend/public/pwndoc-logo.png)
 
+**A modern pentest reporting application with AI-powered translation capabilities**
 
-# Features
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](DOCKER_DEPLOYMENT.md)
+[![AI Translation](https://img.shields.io/badge/AI-translation-green.svg)](#-ai-translation-feature)
 
-- Multiple Language support
-- Multiple Data support
-- **AI-Powered Translation** 🤖
-  - Automatic audit translation with one click
-  - Preserves HTML formatting and structure
-  - Professional cybersecurity terminology
-  - Support for multiple LLM providers (OpenAI, Azure, Ollama)
-- Great Customizationßß
-  - Manage reusable Audit and Vulnerability Data
-  - Create Custom Sections
-  - Add custom fields to Vulnerabilities
-- Vulnerabilities Management
-- Multi-User reporting
-- Docx Report Generation
-- Docx Template customization
+</div>
 
-# Demos
+---
 
-#### Multi-User reporting
-![Shared Audit demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/shared_audit_demo.gif)
+## 📋 Table of Contents
 
-#### Finding edition
-![Finding edit demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/audit_finding_demo.gif)
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Quick Start](#-quick-start)
+  - [Docker Deployment (Recommended)](#docker-deployment-recommended)
+  - [Manual Installation](#manual-installation)
+- [AI Translation Feature](#-ai-translation-feature)
+- [Demos](#-demos)
+- [Documentation](#-documentation)
+- [Architecture](#-architecture)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-#### Vulnerability management workflow
-![Create and update demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/create_and_update_finding.gif)
+---
+
+## 🎯 Overview
+
+PwnDoc is a comprehensive pentest reporting application designed to make security audit documentation simple, efficient, and collaborative. The main goal is to have more time to **Pwn** and less time to **Doc** by mutualizing data like vulnerabilities between users.
+
+### What Makes PwnDoc Special?
+
+- **🤖 AI-Powered Translation**: One-click intelligent translation of Chinese security audit reports to English
+- **🔧 Highly Customizable**: Custom templates, fields, and sections
+- **👥 Multi-User Collaboration**: Real-time collaborative editing
+- **📄 Professional Reports**: Generate customizable Docx reports
+- **🌐 Multilingual Support**: Interface available in multiple languages
+- **🐳 Docker Ready**: Complete containerized deployment solution
+
+---
+
+## ✨ Key Features
+
+### Core Functionality
+- **Multi-User Reporting**: Collaborative audit creation and editing
+- **Vulnerability Management**: Centralized vulnerability database with reusable findings
+- **Custom Templates**: Flexible Docx template system for branded reports
+- **Data Management**: Import/export capabilities for audit data
+- **Role-Based Access**: Granular permissions and user management
+
+### AI-Enhanced Features 🤖
+- **Intelligent Translation**: Automatic Chinese-to-English translation preserving HTML formatting
+- **Smart Field Completion**: AI-assisted generation of vulnerability descriptions and remediation
+- **Professional Terminology**: Cybersecurity-specific translation accuracy
+- **Multiple LLM Support**: OpenAI, Azure OpenAI, and local Ollama integration
+- **Content Preservation**: Creates new audits without modifying originals
+
+### Technical Features
+- **Modern Architecture**: Vue.js frontend with Node.js backend
+- **Database**: MongoDB for flexible data storage
+- **API-First Design**: RESTful API with comprehensive documentation
+- **Docker Support**: Complete containerization with docker-compose
+- **Security**: JWT authentication and role-based authorization
+
+---
+
+## 🚀 Quick Start
+
+### Docker Deployment (Recommended)
+
+The fastest way to get PwnDoc running is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/pwndoc/pwndoc.git
+cd pwndoc
+
+# Start with the automated script
+chmod +x docker-start.sh
+./docker-start.sh
+
+# Or manually with docker-compose
+docker-compose up --build -d
+```
+
+**Access Points:**
+- **Frontend**: https://localhost:8443
+- **Backend API**: http://localhost:4242
+- **Database**: localhost:27017
+
+For detailed Docker deployment instructions, see [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md).
+
+### Manual Installation
+
+<details>
+<summary>Click to expand manual installation steps</summary>
+
+#### Prerequisites
+- Node.js (v14+ recommended)
+- MongoDB (v4.2+)
+- npm or yarn
+
+#### Backend Setup
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Configure your .env file
+npm start
+```
+
+#### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+#### Database Setup
+```bash
+# Start MongoDB
+mongod
+
+# The application will create necessary collections automatically
+```
+
+</details>
 
 ---
 
@@ -48,14 +140,14 @@ The main goal is to have more time to **Pwn** and less time to **Doc** by mutual
 
 This enhanced version of PwnDoc includes powerful AI-driven translation capabilities that streamline the process of creating multilingual security audit reports.
 
-#### Key Features:
+#### Key Capabilities:
 - **One-Click Translation**: Translate entire audit reports with a single button click
 - **Smart Content Processing**: Automatically translates Chinese text to English while preserving HTML tags and formatting
 - **Professional Terminology**: Uses cybersecurity-specific terminology for accurate technical translations
 - **New Audit Creation**: Creates a new English audit instead of modifying the original, preserving your source content
 - **Multiple LLM Support**: Compatible with OpenAI, Azure OpenAI, and local Ollama models
 
-#### How to Use:
+#### Usage:
 1. Navigate to the Audits list page
 2. Click the "Translate to English" button next to any audit
 3. The system will create a new audit with "(English Translation)" suffix
@@ -94,9 +186,118 @@ Configure your AI service in the Settings page:
 - **模型**：选择您偏好的模型（如 gpt-4、llama3.1:8b）
 - **API 设置**：配置端点和身份验证
 
-#### 技术特性：
-- 保留所有 HTML 标签和格式
-- 智能识别中英文混合内容
-- 专业的网络安全术语翻译
-- 支持本地和云端 LLM 服务
-- 错误处理和重试机制
+---
+
+## 🎬 Demos
+
+### Multi-User Reporting
+![Shared Audit demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/shared_audit_demo.gif)
+
+### Finding Edition
+![Finding edit demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/audit_finding_demo.gif)
+
+### Vulnerability Management Workflow
+![Create and update demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/create_and_update_finding.gif)
+
+---
+
+## 📚 Documentation
+
+### User Guides
+- [Installation Guide](https://pwndoc.github.io/pwndoc/#/installation)
+- [Data Management](https://pwndoc.github.io/pwndoc/#/data)
+- [Vulnerability Management](https://pwndoc.github.io/pwndoc/#/vulnerabilities)
+- [Audit Creation](https://pwndoc.github.io/pwndoc/#/audits)
+- [Template Customization](https://pwndoc.github.io/pwndoc/#/docxtemplate)
+
+### Technical Documentation
+- [Docker Deployment Guide](DOCKER_DEPLOYMENT.md)
+- [API Documentation](docs/api/)
+- [Development Setup](backend/README.md)
+- [Security Guidelines](SECURITY.md)
+
+---
+
+## 🏗️ Architecture
+
+PwnDoc follows a modern three-tier architecture:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │    Backend      │    │    Database     │
+│                 │    │                 │    │                 │
+│  Vue.js         │◄──►│  Node.js        │◄──►│  MongoDB        │
+│  Quasar         │    │  Express.js     │    │                 │
+│  Nginx (Docker) │    │  JWT Auth       │    │  GridFS         │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │   AI Services   │
+                    │                 │
+                    │  OpenAI API     │
+                    │  Azure OpenAI   │
+                    │  Local Ollama   │
+                    └─────────────────┘
+```
+
+### Technology Stack
+- **Frontend**: Vue.js 2, Quasar Framework, Axios
+- **Backend**: Node.js, Express.js, Mongoose ODM
+- **Database**: MongoDB with GridFS for file storage
+- **Authentication**: JWT tokens with role-based access
+- **AI Integration**: OpenAI, Azure OpenAI, Ollama support
+- **Deployment**: Docker, docker-compose, Nginx
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/pwndoc/pwndoc.git
+cd pwndoc
+
+# Install dependencies
+cd backend && npm install
+cd ../frontend && npm install
+
+# Start development servers
+npm run dev  # Backend
+npm run serve  # Frontend
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Original PwnDoc team for the foundation
+- OpenAI for AI translation capabilities
+- Vue.js and Quasar communities
+- All contributors and users
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the cybersecurity community**
+
+[⭐ Star this repo](https://github.com/pwndoc/pwndoc) | [🐛 Report Bug](https://github.com/pwndoc/pwndoc/issues) | [💡 Request Feature](https://github.com/pwndoc/pwndoc/issues)
+
+</div>

@@ -38,4 +38,16 @@
 .content-retest {
     margin-top: 50px;
 }
+
+/* 确保AI补全按钮可以正常点击 */
+.q-btn[icon="auto_awesome"] {
+    pointer-events: auto !important;
+    z-index: 1001 !important;
+    position: relative !important;
+}
+
+/* 确保按钮容器不会阻止点击 */
+.row.items-center {
+    pointer-events: auto !important;
+}
 </style>

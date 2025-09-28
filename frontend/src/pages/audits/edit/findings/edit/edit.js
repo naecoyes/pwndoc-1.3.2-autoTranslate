@@ -68,6 +68,66 @@ export default {
         this.getFinding();
         this.getVulnTypes();
 
+        // Refresh settings to ensure LLM configuration is up to date
+        if (this.$settings && this.$settings.refresh) {
+            await this.$settings.refresh();
+        }
+
+        // 调试信息：检查按钮显示条件
+        console.log('=== AI按钮调试信息 ===');
+        console.log('当前路由:', this.$route.path);
+        console.log('auditId:', this.auditId);
+        console.log('findingId:', this.findingId);
+        console.log('frontEndAuditState:', this.frontEndAuditState);
+        console.log('AUDIT_VIEW_STATE.EDIT:', this.AUDIT_VIEW_STATE.EDIT);
+        console.log('$settings:', this.$settings);
+        console.log('$settings.llm:', this.$settings.llm);
+        if (this.$settings.llm) {
+            console.log('$settings.llm.enabled:', this.$settings.llm.enabled);
+        }
+        console.log('按钮显示条件1 (frontEndAuditState === AUDIT_VIEW_STATE.EDIT):', this.frontEndAuditState === this.AUDIT_VIEW_STATE.EDIT);
+        console.log('按钮显示条件2 ($settings.llm && $settings.llm.enabled):', this.$settings.llm && this.$settings.llm.enabled);
+        
+        // 延迟检查DOM元素
+        setTimeout(() => {
+            console.log('=== DOM元素检查 ===');
+            const qBtns = document.querySelectorAll('q-btn');
+            const allButtons = document.querySelectorAll('button');
+            console.log('页面中q-btn元素总数:', qBtns.length);
+            console.log('页面中button元素总数:', allButtons.length);
+            
+            // 查找包含auto_awesome的元素
+            qBtns.forEach((btn, index) => {
+                if (btn.getAttribute('icon') === 'auto_awesome') {
+                    console.log(`找到AI按钮${index + 1}:`, btn);
+                    console.log(`按钮可见性:`, btn.style.display !== 'none' && btn.offsetParent !== null);
+                    console.log(`按钮计算样式:`, window.getComputedStyle(btn));
+                    console.log(`按钮pointer-events:`, window.getComputedStyle(btn).pointerEvents);
+                    console.log(`按钮z-index:`, window.getComputedStyle(btn).zIndex);
+                    
+                    // 添加测试点击事件
+                    btn.addEventListener('click', (e) => {
+                        console.log('AI按钮被点击了!', e);
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, true);
+                }
+            });
+            
+            // 查找实际渲染的button元素
+            const actualButtons = document.querySelectorAll('button');
+            actualButtons.forEach((btn, index) => {
+                const icon = btn.querySelector('i');
+                if (icon && icon.textContent === 'auto_awesome') {
+                    console.log(`找到实际AI按钮${index + 1}:`, btn);
+                    console.log(`实际按钮可见性:`, btn.style.display !== 'none' && btn.offsetParent !== null);
+                    console.log(`实际按钮pointer-events:`, window.getComputedStyle(btn).pointerEvents);
+                }
+            });
+        }, 2000);
+        
+        console.log('=== 调试信息结束 ===');
+
         this.$socket.emit('menu', {menu: 'editFinding', finding: this.findingId, room: this.auditId});
 
         // save on ctrl+s
@@ -673,7 +733,16 @@ export default {
         },
 
         completeWithAI: async function(fieldType) {
+            // 调试信息
+            console.log('=== completeWithAI 调试信息 ===');
+            console.log('completeWithAI called with fieldType:', fieldType);
+            console.log('$settings:', this.$settings);
+            console.log('$settings.llm:', this.$settings.llm);
+            console.log('frontEndAuditState:', this.frontEndAuditState);
+            console.log('AUDIT_VIEW_STATE.EDIT:', this.AUDIT_VIEW_STATE.EDIT);
+            
             if (!this.$settings.llm || !this.$settings.llm.enabled) {
+                console.log('AI服务未启用');
                 Notify.create({
                     message: this.$t('aiNotEnabled'),
                     color: 'negative',
@@ -686,18 +755,23 @@ export default {
 
             try {
                 const payload = {
-                    fieldType: fieldType,
                     title: this.finding.title || '',
-                    vulnType: this.finding.vulnType || '',
-                    description: this.finding.description || '',
-                    observation: this.finding.observation || '',
-                    remediation: this.finding.remediation || ''
+                    currentContent: this.finding[fieldType] || '',
+                    fieldType: fieldType,
+                    language: this.$i18n.locale || 'en',
+                    proofs: this.finding.poc || ''  // 添加proofs字段
                 };
 
+                console.log('发送AI请求，payload:', payload);
                 const response = await AIService.completeField(payload);
+                console.log('收到AI响应:', response);
+                console.log('响应数据结构:', response.data);
                 
-                if (response.data && response.data.content) {
-                    this.finding[fieldType] = response.data.content;
+                // 修复：正确访问响应数据
+                if (response.data && response.data.datas && response.data.datas.content) {
+                    this.finding[fieldType] = response.data.datas.content;
+                    
+                    console.log('AI补全成功，内容已更新:', this.finding[fieldType]);
                     
                     Notify.create({
                         message: this.$t('aiCompletionSuccess'),
@@ -705,10 +779,12 @@ export default {
                         position: 'top-right'
                     });
                 } else {
+                    console.error('响应格式错误:', response.data);
                     throw new Error('Invalid response format');
                 }
             } catch (error) {
                 console.error('AI completion error:', error);
+                console.error('错误详情:', error.response?.data);
                 Notify.create({
                     message: this.$t('aiCompletionError'),
                     color: 'negative',

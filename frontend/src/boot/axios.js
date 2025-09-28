@@ -3,7 +3,8 @@ import User from '@/services/user'
 import Router from '../router'
 
 const axiosInstance = axios.create({
-  baseURL: `${window.location.origin}/api`
+  baseURL: `${window.location.origin}/api`,
+  withCredentials: true  // 自动发送cookie
 })
 
 var refreshPending = false

@@ -25,9 +25,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pwndoc-backend
+    ports:
+      - "4242:4242"
     environment:
       - DB_SERVER=mongo-pwndoc
       - DB_NAME=pwndoc
+      - NODE_ENV=prod
     volumes:
       - ./backend/report-templates:/app/report-templates
       - ./backend/src/config:/app/src/config
@@ -42,11 +45,15 @@ services:
       - backend
 
   pwndoc-frontend:
-    image: ghcr.io/pwndoc/pwndoc-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: pwndoc-frontend
     restart: always
     ports:
       - ${APP_PORT}:8443
+    depends_on:
+      - pwndoc-backend
     networks:
       - backend
 

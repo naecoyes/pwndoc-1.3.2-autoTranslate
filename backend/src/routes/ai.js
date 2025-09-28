@@ -12,7 +12,7 @@ module.exports = function(app) {
         }
 
         try {
-            const { title, currentContent, fieldType, language } = req.body;
+            const { title, currentContent, fieldType, language, proofs } = req.body;
             
             // Validate fieldType
             const allowedFields = ['description', 'observation', 'remediation'];
@@ -25,7 +25,8 @@ module.exports = function(app) {
                 title, 
                 currentContent, 
                 fieldType, 
-                language || 'en'
+                language || 'en',
+                proofs || ''
             );
 
             Response.Ok(res, { content: completedContent });
@@ -85,7 +86,7 @@ module.exports = function(app) {
 
             // Extract findings data for translation
             const findingsData = audit.findings.map(finding => ({
-                title: finding.title?.name || '',
+                title: finding.title || '',
                 description: finding.description || '',
                 observation: finding.observation || '',
                 remediation: finding.remediation || '',
@@ -100,6 +101,7 @@ module.exports = function(app) {
             // Update audit findings with translated content
             for (let i = 0; i < audit.findings.length; i++) {
                 if (translatedFindings[i]) {
+                    audit.findings[i].title = translatedFindings[i].title;
                     audit.findings[i].description = translatedFindings[i].description;
                     audit.findings[i].observation = translatedFindings[i].observation;
                     audit.findings[i].remediation = translatedFindings[i].remediation;
