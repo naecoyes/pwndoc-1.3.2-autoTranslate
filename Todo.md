@@ -39,7 +39,7 @@ db.audits.find().pretty()
 
 # 删除id那行
 db.audits.insertOne({
-    "name" : "ADAA Strategy Platform",
+    "name" : "Platform",
     "auditType" : "Web Application",
     "collaborators" : [ ],
     "reviewers" : [ ],
