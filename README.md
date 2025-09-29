@@ -10,6 +10,8 @@
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](DOCKER_DEPLOYMENT.md)
 [![AI Translation](https://img.shields.io/badge/AI-translation-green.svg)](#-ai-translation-feature)
 
+[![中文文档](https://img.shields.io/badge/文档-中文版-blue.svg)](README-zh.md)
+
 </div>
 
 ---
@@ -198,6 +200,17 @@ Configure your AI service in the Settings page:
 
 ### Vulnerability Management Workflow
 ![Create and update demo gif](https://raw.githubusercontent.com/pwndoc/pwndoc/master/demos/create_and_update_finding.gif)
+
+### Additional Demo Content
+
+#### AI Auto Translation Demo
+![Pwndoc-auto.mov](demos/Pwndoc-auto.mov)
+
+#### Application Interface Screenshot
+![Application Interface Screenshot](Screenshot 2025-09-28 at 2.39.48 PM.png)
+
+#### Feature Demo Screenshot
+![Feature Demo Screenshot](demos/51 PM (2).png)
 
 ---
 
