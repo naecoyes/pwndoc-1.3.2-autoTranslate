@@ -377,9 +377,188 @@ ${proofs ? '确保你的修复直接针对概念验证中显示的具体攻击�
         return response.choices[0]?.message?.content || '';
     }
 
+    // Split long content into chunks for translation
+    splitContentIntoChunks(content, maxChunkSize = 3000) {
+        // If content is small enough, return as single chunk
+        if (content.length <= maxChunkSize) {
+            return [content];
+        }
+
+        const chunks = [];
+        let currentChunk = '';
+        let i = 0;
+
+        // Process content character by character to preserve HTML tags
+        while (i < content.length) {
+            const char = content[i];
+
+            // Check if adding next character would exceed chunk size
+            if (currentChunk.length + 1 > maxChunkSize) {
+                // Try to find a good breaking point (end of sentence, block element, etc.)
+                let breakPoint = currentChunk.length;
+
+                // Look for sentence endings or block elements within the last 200 characters
+                const lookBack = Math.min(200, currentChunk.length);
+                for (let j = currentChunk.length - lookBack; j < currentChunk.length; j++) {
+                    const substr = currentChunk.substring(j);
+                    if (substr.startsWith('. ') || substr.startsWith('。') ||
+                        substr.startsWith('\n\n') || substr.startsWith('</p>') ||
+                        substr.startsWith('</div>') || substr.startsWith('</li>')) {
+                        breakPoint = j + (substr.startsWith('</') ? 4 : 1);
+                        break;
+                    }
+                }
+
+                // If we found a good breaking point and it's not too close to the beginning
+                if (breakPoint > currentChunk.length * 0.8) {
+                    chunks.push(currentChunk.substring(0, breakPoint));
+                    currentChunk = currentChunk.substring(breakPoint);
+                } else {
+                    // If no good breaking point, just split at max size
+                    chunks.push(currentChunk);
+                    currentChunk = '';
+                }
+            }
+
+            currentChunk += char;
+            i++;
+        }
+
+        // Add remaining content as last chunk
+        if (currentChunk) {
+            chunks.push(currentChunk);
+        }
+
+        return chunks;
+    }
+
+    // Translate a single chunk with context awareness
+    async translateChunk(chunk, targetLanguage, chunkIndex, totalChunks, previousTranslation = '') {
+        if (!await this.isEnabled()) {
+            throw new Error('AI service is not enabled');
+        }
+
+        // System prompts to enforce target output language strictly
+        const systemPrompts = {
+            en: `You are a professional cybersecurity translator. Your output MUST be entirely in English only. Do not include any Chinese characters. Preserve all HTML tags, code blocks, URLs, numbers and structure exactly as in the input. Do not add explanations, quotes, or wrappers. Return only the translated content.`,
+            zh: `你是一名专业的网络安全翻译员。你的输出必须完全为中文。不要包含英文原句复述或多余解释。必须完全保留输入中的所有HTML标签、代码块、URL、数字和结构。只返回翻译后的内容。`
+        };
+
+        // Add context information for better translation consistency
+        const contextInfo = totalChunks > 1
+            ? ` (Part ${chunkIndex + 1} of ${totalChunks})`
+            : '';
+
+        const prompts = {
+            en: `You are a cybersecurity expert translator. Translate ONLY the Chinese text in the following content to English while:
+1. Preserving ALL HTML tags exactly as they are
+2. Only translating Chinese characters to English
+3. Using professional cybersecurity terminology
+4. Keeping all English text unchanged
+5. Maintaining the exact structure and formatting
+6. The final output must be 100% English and contain NO Chinese characters
+${contextInfo}
+
+Content to translate:
+${chunk}
+
+Provide only the translated content with preserved HTML tags, no additional explanations.`,
+            zh: `你是网络安全专家翻译员。将以下内容中的英文翻译成中文，同时：
+1. 完全保留所有HTML标签
+2. 只翻译英文字符为中文
+3. 使用专业的网络安全术语
+4. 保持所有中文文本不变
+5. 维持确切的结构和格式
+${contextInfo}
+
+要翻译的内容：
+${chunk}
+
+只提供保留HTML标签的翻译内容，不要额外的解释。`
+        };
+
+        const prompt = prompts[targetLanguage];
+        if (!prompt) {
+            throw new Error(`Unsupported target language: ${targetLanguage}`);
+        }
+
+        const messages = [
+            { role: 'system', content: systemPrompts[targetLanguage] },
+            { role: 'user', content: prompt }
+        ];
+
+        const response = await this.callOpenAI(messages);
+        let translated = response.choices[0]?.message?.content || '';
+
+        // If translating to English but output still contains Chinese characters, retry once with stricter instruction
+        const containsChinese = /[\u4e00-\u9fff]/.test(translated);
+        if (targetLanguage === 'en' && containsChinese) {
+            const retryMessages = [
+                { role: 'system', content: systemPrompts.en },
+                { role: 'user', content: `STRICT MODE: The previous output contained Chinese characters. Translate the following content to English and ensure the output contains NO Chinese characters. Preserve all HTML tags exactly.\n\nContent:\n${chunk}\n\nReturn only the translated content.` }
+            ];
+            try {
+                const retryResp = await this.callOpenAI(retryMessages);
+                const retryText = retryResp.choices[0]?.message?.content || '';
+                if (retryText) translated = retryText;
+            } catch (e) {
+                // keep first translation if retry fails
+            }
+        }
+
+        return translated;
+    }
+
+    // Translate long content by splitting into chunks
+    async translateContentWithChunking(content, targetLanguage = 'en', maxChunkSize = 3000) {
+        if (!await this.isEnabled()) {
+            throw new Error('AI service is not enabled');
+        }
+
+        // For short content, use regular translation
+        if (content.length <= maxChunkSize) {
+            return await this.translateContent(content, targetLanguage);
+        }
+
+        // Split content into chunks
+        const chunks = this.splitContentIntoChunks(content, maxChunkSize);
+        const translatedChunks = [];
+        let previousTranslation = '';
+
+        // Translate each chunk
+        for (let i = 0; i < chunks.length; i++) {
+            try {
+                const translatedChunk = await this.translateChunk(
+                    chunks[i],
+                    targetLanguage,
+                    i,
+                    chunks.length,
+                    previousTranslation
+                );
+                translatedChunks.push(translatedChunk);
+                previousTranslation = translatedChunk;
+
+                // Add small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                console.error(`Error translating chunk ${i + 1}:`, error.message);
+                // If translation fails, keep original chunk
+                translatedChunks.push(chunks[i]);
+            }
+        }
+
+        // Join translated chunks
+        return translatedChunks.join('');
+    }
+
     async translateContent(content, targetLanguage = 'en') {
         if (!await this.isEnabled()) {
             throw new Error('AI service is not enabled');
+        }
+
+        // For long content, use chunking translation
+        if (content && content.length > 3000) {
+            return await this.translateContentWithChunking(content, targetLanguage);
         }
 
         // System prompts to enforce target output language strictly
