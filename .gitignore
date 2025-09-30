@@ -19,6 +19,7 @@ config.json
 report.json
 roles.json
 app-settings.json
+cookies.txt
 
 # Editor directories and files
 .idea
